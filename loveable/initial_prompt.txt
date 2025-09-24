@@ -1,0 +1,45 @@
+Build a simple Networking CRM app with two main pages:
+
+Add Contact Page
+
+Fields:
+
+Name (required)
+
+Email (optional)
+
+Company Name (optional)
+
+Notes (optional)
+
+Next Follow-Up Date (optional)
+
+Auto-generate:
+
+timestamp (record when submitted)
+
+last_connected (default to the same as timestamp, but editable later)
+
+Submit button → saves the new contact into Supabase.
+
+Manage Contacts Page
+
+Display a list of all contacts from Supabase.
+
+If no contacts exist, show the message: “No existing contacts”.
+
+Each contact should be clickable to open an Edit Contact Page, where I can:
+
+Edit any of the fields (Name, Email, Company, Notes, Next Follow-Up, Last Connected).
+
+Save changes back to Supabase.
+
+Requirements:
+
+App should be connected to Supabase for storage.
+
+Allow integration with n8n webhook for automations (later I will provide the webhook URL).
+
+Connect to GitHub so I can version control this project.
+
+UI should be clean and simple, with clear navigation between “Add Contact” and “Manage Contacts.”
