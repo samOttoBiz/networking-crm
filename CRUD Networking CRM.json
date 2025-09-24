@@ -1,0 +1,177 @@
+{
+  "name": "CRUD Networking CRM",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {}
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -96,
+        -208
+      ],
+      "id": "50ad5e46-f722-4248-a870-9e6d789e8c12",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -96,
+        16
+      ],
+      "id": "676f19fe-b6df-4b9a-bfd6-d0ef391b4021",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "jsCode": "return [\n  {\n    json: {\n      emailBody: items.length === 0\n        ? \"✅ No follow-ups this week!\"\n        : \"📌 Follow-ups for the next 7 days:\\n\\n\" +\n          items.map(item => {\n            const name = item.json.name || \"No name\";\n            const company = item.json.company_name || \"No company\";\n            const rawDate = item.json.next_follow_up_date;\n            let formattedDate = \"No date set\";\n\n            if (rawDate) {\n              const d = new Date(rawDate);\n              const dayName = d.toLocaleDateString(\"en-US\", { weekday: \"long\" });\n              const mm = String(d.getMonth() + 1).padStart(2, \"0\");\n              const dd = String(d.getDate()).padStart(2, \"0\");\n              formattedDate = `${dayName} (${mm}/${dd})`;\n            }\n\n            return `- ${name} (${company}) → ${formattedDate}`;\n          }).join(\"\\n\")\n    }\n  }\n];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        576,
+        16
+      ],
+      "id": "48c20e5d-77e8-42f5-9c8a-239f99d886d2",
+      "name": "formatEmail"
+    },
+    {
+      "parameters": {
+        "sendTo": "saotto@calpoly.edu",
+        "subject": "Weekly Networking Follow-Ups",
+        "emailType": "text",
+        "message": "={{$json[\"emailBody\"]}}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        800,
+        16
+      ],
+      "id": "ae4ac79f-b7ee-43c7-8d8f-cd16053ec397",
+      "name": "sendFollowUps",
+      "webhookId": "abbbaec7-eaf3-4e6b-b5d8-da6a59497a3b",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "9r8lDsIVpp0gYvZH",
+          "name": "samOttoBiz"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const today = new Date();\nconst weekFromNow = new Date();\nweekFromNow.setDate(today.getDate() + 7);\n\nreturn [\n  {\n    json: {\n      now: today.toISOString().split(\"T\")[0],       // YYYY-MM-DD\n      nowPlus7: weekFromNow.toISOString().split(\"T\")[0]\n    }\n  }\n];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        128,
+        16
+      ],
+      "id": "d14350df-27d9-4013-9a2f-522710fcb565",
+      "name": "calculateDate"
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "tableId": "contacts",
+        "returnAll": true,
+        "matchType": "allFilters",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "next_follow_up_date",
+              "condition": "gte",
+              "keyValue": "={{$now}}"
+            },
+            {
+              "keyName": "next_follow_up_date",
+              "condition": "lte",
+              "keyValue": "={{ $json.nowPlus7 }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        352,
+        16
+      ],
+      "id": "5b95dcd2-492d-4e18-9994-3cb54139a760",
+      "name": "getContacts",
+      "credentials": {
+        "supabaseApi": {
+          "id": "NpGxLOGtm84Pah9L",
+          "name": "Supabase account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "calculateDate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "formatEmail": {
+      "main": [
+        [
+          {
+            "node": "sendFollowUps",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "calculateDate": {
+      "main": [
+        [
+          {
+            "node": "getContacts",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "getContacts": {
+      "main": [
+        [
+          {
+            "node": "formatEmail",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "a7140b7d-33da-4adf-948b-e88cf8e71de0",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "3b790078c14fb3c88d480ccfc4bd3856950dbb745aef08b47529682201e578a1"
+  },
+  "id": "bcxBUbEAFmI7YfOI",
+  "tags": []
+}
